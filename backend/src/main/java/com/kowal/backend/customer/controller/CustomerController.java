@@ -1,22 +1,23 @@
 package com.kowal.backend.customer.controller;
 
 import com.kowal.backend.customer.dto.request.*;
-import com.kowal.backend.customer.dto.response.DayExerciseResponse;
 import com.kowal.backend.customer.dto.response.DayResponse;
 import com.kowal.backend.customer.dto.response.ExerciseResponse;
 import com.kowal.backend.customer.dto.response.RoutineResponse;
+import com.kowal.backend.customer.dto.response.WorkoutDayResponse;
 import com.kowal.backend.customer.model.Equipment;
+import com.kowal.backend.customer.model.WorkoutLog;
 import com.kowal.backend.customer.service.CustomerService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.Resource;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -121,6 +122,15 @@ public class CustomerController {
         return ResponseEntity.ok(deletedDay);
     }
 
+    @GetMapping("/days/today")
+    public ResponseEntity<DayResponse> getDayForDate(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        String userEmail = userDetails.getUsername();
+        DayResponse day = customerService.getDayForDate(userEmail, date);
+        return ResponseEntity.ok(day);
+    }
+
 
 
 
@@ -182,5 +192,45 @@ public class CustomerController {
         List<Equipment> equipment = customerService.getAllEquipment(userEmail);
         return ResponseEntity.ok(equipment);
     }
+
+
+
+
+
+
+
+
+
+
+    @GetMapping("/workouts")
+    public ResponseEntity<List<WorkoutLog>> getAllWorkoutLogs(@AuthenticationPrincipal UserDetails userDetails){
+        String userEmail = userDetails.getUsername();
+        return ResponseEntity.ok(customerService.getAllWorkoutLogs(userEmail));
+    }
+
+    @GetMapping("/workouts/by-date")
+    public ResponseEntity<WorkoutDayResponse> getWorkoutByDate(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam LocalDate date
+    ) {
+        String userEmail = userDetails.getUsername();
+        return ResponseEntity.ok(customerService.getWorkoutByDate(userEmail, date));
+    }
+
+    @PostMapping("/workouts/log-workout")
+    public ResponseEntity<WorkoutLog> logWorkout(@AuthenticationPrincipal UserDetails userDetails, @RequestBody LogWorkoutRequest logWorkoutRequest){
+        String userEmail = userDetails.getUsername();
+        WorkoutLog workout = customerService.logWorkout(userEmail, logWorkoutRequest);
+        return ResponseEntity.status(HttpStatus.CREATED).body(workout);
+    }
+
+
+    @PutMapping("/workouts/{id}")
+    public ResponseEntity<WorkoutLog> deleteWorkoutLog(@AuthenticationPrincipal UserDetails userDetails, @PathVariable Long workoutLogId){
+        String userEmail = userDetails.getUsername();
+        return ResponseEntity.noContent().build();
+    }
+
+
 
 }

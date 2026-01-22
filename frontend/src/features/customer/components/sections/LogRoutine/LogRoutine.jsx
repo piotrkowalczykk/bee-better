@@ -84,7 +84,7 @@ export const LogRoutine = ({ routineId, onClose, onUpdate }) => {
       <RoutineCard
         title={routine.name}
         Icon={IconsData[routine.icon] || IconsData.QuestionMarkIcon}
-        userProgres={routine.value}
+        userProgres={routine.value || 0}
         scope={routine.scope}
         unit={routine.units}
         value={(newProgress / routine.scope) * 100}

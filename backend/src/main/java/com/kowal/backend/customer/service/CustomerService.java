@@ -1,13 +1,15 @@
 package com.kowal.backend.customer.service;
 
 import com.kowal.backend.customer.dto.request.*;
-import com.kowal.backend.customer.dto.response.DayExerciseResponse;
 import com.kowal.backend.customer.dto.response.DayResponse;
 import com.kowal.backend.customer.dto.response.ExerciseResponse;
 import com.kowal.backend.customer.dto.response.RoutineResponse;
+import com.kowal.backend.customer.dto.response.WorkoutDayResponse;
 import com.kowal.backend.customer.model.Equipment;
+import com.kowal.backend.customer.model.WorkoutLog;
 import jakarta.validation.Valid;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public interface CustomerService {
@@ -30,4 +32,14 @@ public interface CustomerService {
     ExerciseResponse deleteExercise(Long exerciseId, String userEmail);
 
     List<Equipment> getAllEquipment(String userEmail);
+
+    List<WorkoutLog> getAllWorkoutLogs(String userEmail);
+
+    WorkoutLog deleteWorkoutLog(String userEmail, Long workoutLogId);
+
+    WorkoutLog logWorkout(String userEmail, LogWorkoutRequest logWorkoutRequest);
+
+    WorkoutDayResponse getWorkoutByDate(String userEmail, LocalDate date);
+
+    DayResponse getDayForDate(String userEmail, LocalDate date);
 }

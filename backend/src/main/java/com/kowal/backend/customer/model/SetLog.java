@@ -2,27 +2,23 @@ package com.kowal.backend.customer.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-        import lombok.Data;
+import lombok.Data;
 
-@Entity
 @Data
-@Table(name = "day_exercises")
-public class DayExercise {
+@Entity
+@Table(name = "set_logs")
+public class SetLog {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "exercise_id")
-    private Exercise exercise;
-
-    @ManyToOne
-    @JoinColumn(name = "day_id")
-    @JsonIgnore
-    private Day day;
-
-    private int sets;
+    private int setNumber;
     private int reps;
     private double weight;
     private int rir;
+
+    @ManyToOne
+    @JsonIgnore
+    private ExerciseLog exerciseLog;
 }

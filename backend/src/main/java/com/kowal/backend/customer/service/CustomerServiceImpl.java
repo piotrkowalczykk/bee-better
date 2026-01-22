@@ -1,19 +1,13 @@
 package com.kowal.backend.customer.service;
 
 import com.kowal.backend.customer.dto.request.*;
-import com.kowal.backend.customer.dto.response.DayExerciseResponse;
-import com.kowal.backend.customer.dto.response.DayResponse;
-import com.kowal.backend.customer.dto.response.ExerciseResponse;
-import com.kowal.backend.customer.dto.response.RoutineResponse;
+import com.kowal.backend.customer.dto.response.*;
 import com.kowal.backend.customer.mapper.DayExerciseMapper;
 import com.kowal.backend.customer.mapper.DayMapper;
 import com.kowal.backend.customer.mapper.ExerciseMapper;
 import com.kowal.backend.customer.mapper.RoutineMapper;
 import com.kowal.backend.customer.model.*;
-import com.kowal.backend.customer.repository.DayExerciseRepository;
-import com.kowal.backend.customer.repository.DayRepository;
-import com.kowal.backend.customer.repository.ExerciseRepository;
-import com.kowal.backend.customer.repository.RoutineRepository;
+import com.kowal.backend.customer.repository.*;
 import com.kowal.backend.exception.customer.*;
 import com.kowal.backend.security.model.AuthUser;
 import com.kowal.backend.security.repository.AuthUserRepository;
@@ -23,8 +17,10 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -41,11 +37,13 @@ public class CustomerServiceImpl implements CustomerService {
     private final FileStorageService fileStorageService;
     private final DayExerciseRepository dayExerciseRepository;
     private final DayExerciseMapper dayExerciseMapper;
+    private final WorkoutLogRepository workoutLogRepository;
 
     @Autowired
     public CustomerServiceImpl(AuthUserRepository authUserRepository, RoutineRepository routineRepository, RoutineMapper routineMapper,
                                DayRepository dayRepository, DayMapper dayMapper, ExerciseRepository exerciseRepository, ExerciseMapper exerciseMapper,
-                                FileStorageService fileStorageService, DayExerciseRepository dayExerciseRepository, DayExerciseMapper dayExerciseMapper) {
+                                FileStorageService fileStorageService, DayExerciseRepository dayExerciseRepository, DayExerciseMapper dayExerciseMapper,
+                                WorkoutLogRepository workoutLogRepository) {
         this.authUserRepository = authUserRepository;
         this.routineRepository = routineRepository;
         this.routineMapper = routineMapper;
@@ -56,6 +54,7 @@ public class CustomerServiceImpl implements CustomerService {
         this.fileStorageService = fileStorageService;
         this.dayExerciseRepository = dayExerciseRepository;
         this.dayExerciseMapper = dayExerciseMapper;
+        this.workoutLogRepository = workoutLogRepository;
     }
 
     @Override
@@ -269,6 +268,135 @@ public class CustomerServiceImpl implements CustomerService {
         return List.of(Equipment.values());
     }
 
+    @Override
+    public List<WorkoutLog> getAllWorkoutLogs(String userEmail) {
+        AuthUser authUser = findAuthUserByEmail(userEmail);
+        return workoutLogRepository.findByAuthUserId(authUser.getId());
+    }
+
+    @Override
+    public WorkoutLog logWorkout(String userEmail, LogWorkoutRequest logWorkoutRequest) {
+        AuthUser authUser = findAuthUserByEmail(userEmail);
+        WorkoutLog workoutLog = workoutLogRepository.findByAuthUserIdAndWorkoutDate(authUser.getId(), logWorkoutRequest.getWorkoutDate())
+                .orElseGet(()->createWorkout(authUser, logWorkoutRequest));
+
+        upsertExerciseLog(workoutLog, logWorkoutRequest);
+
+        return workoutLogRepository.save(workoutLog);
+    }
+
+    @Override
+    public WorkoutDayResponse getWorkoutByDate(String userEmail, LocalDate date) {
+
+        AuthUser user = findAuthUserByEmail(userEmail);
+
+        WorkoutLog workoutLog = workoutLogRepository
+                .findByAuthUserIdAndWorkoutDate(user.getId(), date)
+                .orElseThrow(() -> new WorkoutLogNotFoundException(date));
+
+        List<ExerciseLogResponse> exercises = workoutLog.getExerciseLogs().stream()
+                .map(exLog -> new ExerciseLogResponse(
+                        exLog.getExercise().getId(),
+                        exLog.getExercise().getName(),
+                        exLog.getExercise().getMuscleGroup(),
+                        exLog.getExercise().getImage(),
+                        exLog.getSets().stream()
+                                .map(s -> new SetLogResponse(
+                                        s.getSetNumber(),
+                                        s.getReps(),
+                                        s.getWeight(),
+                                        s.getRir()
+                                ))
+                                .toList()
+                ))
+                .toList();
+
+        return new WorkoutDayResponse(workoutLog.getWorkoutDate(), exercises);
+    }
+
+    @Override
+    public DayResponse getDayForDate(String userEmail, LocalDate date) {
+        AuthUser user = findAuthUserByEmail(userEmail);
+
+        int jsDay = date.getDayOfWeek().getValue();
+
+        return dayRepository.findByAuthUserId(user.getId()).stream()
+                .filter(day -> day.getFrequency().contains(jsDay))
+                .findFirst()
+                .map(day -> dayMapper.mapDayToDayResponse(day))
+                .orElseThrow(()-> new DayNotFoundException(date));
+    }
+
+    private WorkoutLog createWorkout(AuthUser user, LogWorkoutRequest logWorkoutRequest) {
+
+        Day day = dayRepository.findById(logWorkoutRequest.getDayId())
+                .orElseThrow(() -> new DayNotFoundException(logWorkoutRequest.getDayId()));
+
+        WorkoutLog workoutLog = new WorkoutLog();
+        workoutLog.setAuthUser(user);
+        workoutLog.setDay(day);
+        workoutLog.setWorkoutDate(logWorkoutRequest.getWorkoutDate());
+        workoutLog.setExerciseLogs(new ArrayList<>());
+
+        return workoutLog;
+    }
+
+    private void upsertExerciseLog(WorkoutLog workoutLog, LogWorkoutRequest req) {
+
+        ExerciseLog exerciseLog = workoutLog.getExerciseLogs().stream()
+                .filter(e -> e.getExercise().getId().equals(req.getExerciseId()))
+                .findFirst()
+                .orElseGet(() -> {
+                    Exercise exercise = exerciseRepository.findById(req.getExerciseId())
+                            .orElseThrow(() -> new ExerciseNotFoundException(req.getExerciseId()));
+
+                    ExerciseLog newLog = new ExerciseLog();
+                    newLog.setWorkout(workoutLog);
+                    newLog.setExercise(exercise);
+                    newLog.setSets(new ArrayList<>());
+
+                    workoutLog.getExerciseLogs().add(newLog);
+                    return newLog;
+                });
+
+        exerciseLog.getSets().clear();
+
+        for (SetLogRequest s : req.getSets()) {
+            SetLog setLog = new SetLog();
+            setLog.setSetNumber(s.getSetNumber());
+            setLog.setReps(s.getReps());
+            setLog.setWeight(s.getWeight());
+            setLog.setRir(s.getRir());
+            setLog.setExerciseLog(exerciseLog);
+            exerciseLog.getSets().add(setLog);
+        }
+    }
+
+    @Override
+    @Transactional
+    public WorkoutLog deleteWorkoutLog(String userEmail, Long workoutLogId) {
+
+        AuthUser authUser = findAuthUserByEmail(userEmail);
+
+        WorkoutLog workoutLog = workoutLogRepository
+                .findByIdAndAuthUserId(workoutLogId, authUser.getId())
+                .orElseThrow(() -> new WorkoutLogNotFoundException(workoutLogId));
+
+        workoutLogRepository.delete(workoutLog);
+
+        return workoutLog;
+    }
+
+    public void deleteWorkoutByDate(String userEmail, LocalDate date) {
+
+        AuthUser user = findAuthUserByEmail(userEmail);
+
+        WorkoutLog workout = workoutLogRepository
+                .findByAuthUserIdAndWorkoutDate(user.getId(), date)
+                .orElseThrow(() -> new WorkoutLogNotFoundException(date));
+
+        workoutLogRepository.delete(workout);
+    }
 
     private AuthUser findAuthUserByEmail(String userEmail) {
         return authUserRepository.findByEmail(userEmail)

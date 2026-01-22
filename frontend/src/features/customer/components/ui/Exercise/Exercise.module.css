@@ -8,6 +8,7 @@
     border: 1px solid transparent;
     transition: 0.3s all ease;
     cursor: pointer;
+    width: 100%;
 }
 
 .exerciseContainer:hover{
