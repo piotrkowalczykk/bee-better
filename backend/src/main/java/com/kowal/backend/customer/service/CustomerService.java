@@ -1,10 +1,7 @@
 package com.kowal.backend.customer.service;
 
 import com.kowal.backend.customer.dto.request.*;
-import com.kowal.backend.customer.dto.response.DayResponse;
-import com.kowal.backend.customer.dto.response.ExerciseResponse;
-import com.kowal.backend.customer.dto.response.RoutineResponse;
-import com.kowal.backend.customer.dto.response.WorkoutDayResponse;
+import com.kowal.backend.customer.dto.response.*;
 import com.kowal.backend.customer.model.Equipment;
 import com.kowal.backend.customer.model.WorkoutLog;
 import jakarta.validation.Valid;
@@ -42,4 +39,8 @@ public interface CustomerService {
     WorkoutDayResponse getWorkoutByDate(String userEmail, LocalDate date);
 
     DayResponse getDayForDate(String userEmail, LocalDate date);
+
+    RoutineLogResponse logRoutine(LogRoutineRequest logRoutineRequest, String userEmail);
+
+    List<RoutineLogResponse> getRoutineLogsForDay(String username, LocalDate date);
 }

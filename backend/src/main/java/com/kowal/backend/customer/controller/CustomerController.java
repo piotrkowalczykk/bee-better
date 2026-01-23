@@ -1,10 +1,7 @@
 package com.kowal.backend.customer.controller;
 
 import com.kowal.backend.customer.dto.request.*;
-import com.kowal.backend.customer.dto.response.DayResponse;
-import com.kowal.backend.customer.dto.response.ExerciseResponse;
-import com.kowal.backend.customer.dto.response.RoutineResponse;
-import com.kowal.backend.customer.dto.response.WorkoutDayResponse;
+import com.kowal.backend.customer.dto.response.*;
 import com.kowal.backend.customer.model.Equipment;
 import com.kowal.backend.customer.model.WorkoutLog;
 import com.kowal.backend.customer.service.CustomerService;
@@ -69,6 +66,22 @@ public class CustomerController {
         String userEmail = userDetails.getUsername();
         RoutineResponse deletedRoutine = customerService.deleteRoutine(routineId, userEmail);
         return ResponseEntity.ok(deletedRoutine);
+    }
+
+    @PostMapping("/routines/log")
+    public ResponseEntity<RoutineLogResponse> logRoutine(@RequestBody LogRoutineRequest logRoutineRequest,
+                                                         @AuthenticationPrincipal UserDetails userDetails){
+        String userEmail = userDetails.getUsername();
+        RoutineLogResponse loggedRoutine = customerService.logRoutine(logRoutineRequest, userEmail);
+        return ResponseEntity.ok(loggedRoutine);
+    }
+
+    @GetMapping("/routines/logs")
+    public List<RoutineLogResponse> getLogsForDay(
+            @RequestParam LocalDate date,
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        return customerService.getRoutineLogsForDay(userDetails.getUsername(), date);
     }
 
 

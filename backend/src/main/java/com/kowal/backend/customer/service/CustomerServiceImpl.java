@@ -38,12 +38,13 @@ public class CustomerServiceImpl implements CustomerService {
     private final DayExerciseRepository dayExerciseRepository;
     private final DayExerciseMapper dayExerciseMapper;
     private final WorkoutLogRepository workoutLogRepository;
+    private final RoutineLogRepository routineLogRepository;
 
     @Autowired
     public CustomerServiceImpl(AuthUserRepository authUserRepository, RoutineRepository routineRepository, RoutineMapper routineMapper,
                                DayRepository dayRepository, DayMapper dayMapper, ExerciseRepository exerciseRepository, ExerciseMapper exerciseMapper,
                                 FileStorageService fileStorageService, DayExerciseRepository dayExerciseRepository, DayExerciseMapper dayExerciseMapper,
-                                WorkoutLogRepository workoutLogRepository) {
+                                WorkoutLogRepository workoutLogRepository,  RoutineLogRepository routineLogRepository) {
         this.authUserRepository = authUserRepository;
         this.routineRepository = routineRepository;
         this.routineMapper = routineMapper;
@@ -55,6 +56,7 @@ public class CustomerServiceImpl implements CustomerService {
         this.dayExerciseRepository = dayExerciseRepository;
         this.dayExerciseMapper = dayExerciseMapper;
         this.workoutLogRepository = workoutLogRepository;
+        this.routineLogRepository = routineLogRepository;
     }
 
     @Override
@@ -325,6 +327,47 @@ public class CustomerServiceImpl implements CustomerService {
                 .findFirst()
                 .map(day -> dayMapper.mapDayToDayResponse(day))
                 .orElseThrow(()-> new DayNotFoundException(date));
+    }
+
+    @Override
+    public RoutineLogResponse logRoutine(LogRoutineRequest request, String userEmail) {
+        AuthUser user = findAuthUserByEmail(userEmail);
+        Routine routine = findRoutineAndVerifyOwner(request.getRoutineId(), user.getId());
+
+        Optional<RoutinesLog> existingLogOpt =
+                routineLogRepository.findByRoutineIdAndAuthUserIdAndLogDate(
+                        routine.getId(),
+                        user.getId(),
+                        request.getLogDate()
+                );
+
+        RoutinesLog routinesLog;
+
+        if (existingLogOpt.isPresent()) {
+            routinesLog = existingLogOpt.get();
+        } else {
+            routinesLog = new RoutinesLog();
+            routinesLog.setAuthUser(user);
+            routinesLog.setRoutine(routine);
+            routinesLog.setLogDate(request.getLogDate());
+        }
+        routinesLog.setValue(request.getValue());
+        routinesLog.setScope(routine.getScope());
+        routinesLog.setUnits(routine.getUnits());
+
+        routineLogRepository.save(routinesLog);
+
+        return new RoutineLogResponse(
+                routinesLog.getLogDate(),
+                routine.getId(),
+                routinesLog.getValue()
+        );
+    }
+
+    @Override
+    public List<RoutineLogResponse> getRoutineLogsForDay(String username, LocalDate date) {
+        AuthUser user = findAuthUserByEmail(username);
+        return routineLogRepository.findLogsForDay(user.getId(), date);
     }
 
     private WorkoutLog createWorkout(AuthUser user, LogWorkoutRequest logWorkoutRequest) {

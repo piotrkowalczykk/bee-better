@@ -24,12 +24,16 @@ export const Dashboard = () => {
   const [showExerciseModal, setShowExerciseModal] = useState(false);
   const [userDays, setUserDays] = useState([]);
   const [currentDate, setCurrentDate] = useState(() => new Date());
+  const [routineLogs, setRoutineLogs] = useState([]);
 
   useEffect(() => {
     fetchUserRoutines();
     fetchUserDays();
   }, []);
 
+  useEffect(() => {
+    fetchRoutineLogsForDay();
+  }, [currentDate]);
 
   const formatDate = (date) => date.toLocaleDateString("pl-PL");
 
@@ -74,6 +78,25 @@ export const Dashboard = () => {
     }
   };
 
+  const fetchRoutineLogsForDay = async () => {
+    const token = localStorage.getItem("token");
+    const dateStr = currentDate.toISOString().split("T")[0];
+
+    const res = await fetch(
+      `http://127.0.0.1:8080/customer/routines/logs?date=${dateStr}`,
+      { headers: { Authorization: `Bearer ${token}` } },
+    );
+
+    if (res.ok) {
+      const data = await res.json();
+      setRoutineLogs(data);
+    }
+  };
+
+  const logsMap = Object.fromEntries(
+    routineLogs.map((log) => [log.routineId, log.value])
+  );
+
   const fetchUserDays = async () => {
     const token = localStorage.getItem("token");
     try {
@@ -99,8 +122,9 @@ export const Dashboard = () => {
         >
           <LogRoutine
             routineId={selectedRoutineId}
+            logDate={currentDate}
             onClose={() => setShowRoutineModal(false)}
-            onUpdate={() => fetchUserRoutines()}
+            onUpdate={() => fetchRoutineLogsForDay()}
           />
         </ModalWindow>
       )}
@@ -131,23 +155,27 @@ export const Dashboard = () => {
               ) : routinesForDay.length === 0 ? (
                 <p>No routines for this day</p>
               ) : (
-                routinesForDay.map((routine) => (
-                  <RoutineCard
-                    key={routine.id}
-                    title={routine.name}
-                    Icon={IconsData[routine.icon] || QuestionMarkIcon}
-                    userProgres={routine.value || 0}
-                    scope={routine.scope}
-                    unit={routine.units}
-                    value={(routine.value / routine.scope) * 100}
-                    pathColor={routine.color}
-                    trailColor="#2b2b27"
-                    onClick={() => {
-                      setSelectedRoutineId(routine.id);
-                      setShowRoutineModal(true);
-                    }}
-                  />
-                ))
+                routinesForDay.map((routine) => {
+                  const loggedValue = logsMap[routine.id] || 0;
+
+                  return (
+                    <RoutineCard
+                      key={routine.id}
+                      title={routine.name}
+                      Icon={IconsData[routine.icon] || QuestionMarkIcon}
+                      userProgres={loggedValue}
+                      scope={routine.scope}
+                      unit={routine.units}
+                      value={(loggedValue / routine.scope) * 100}
+                      pathColor={routine.color}
+                      trailColor="#2b2b27"
+                      onClick={() => {
+                        setSelectedRoutineId(routine.id);
+                        setShowRoutineModal(true);
+                      }}
+                    />
+                  );
+                })
               )}
             </div>
           </div>

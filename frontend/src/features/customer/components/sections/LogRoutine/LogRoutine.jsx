@@ -5,21 +5,17 @@ import { IconsData } from "../../../../../app/icons/IconsData";
 import { CustomInput } from "../../ui/CustomInput/CustomInput";
 import { CustomBtn } from "../../../../../components/ui/CustomBtn/CustomBtn";
 
-export const LogRoutine = ({ routineId, onClose, onUpdate }) => {
+export const LogRoutine = ({ routineId, onClose, onUpdate, logDate }) => {
   const [routine, setRoutine] = useState(null);
   const [newProgress, setNewProgress] = useState("");
+  const [loggedValue, setLoggedValue] = useState(0);
 
   useEffect(() => {
-    if (routineId) {
-      fetchRoutine();
-    }
-  }, [routineId]);
-
-  useEffect(() => {
-    if (routine) {
-      setNewProgress(routine.value || 0);
-    }
-  }, [routine]);
+  if (routineId) {
+    fetchRoutine();
+    fetchRoutineLogForDay(); // 🔥 NOWE
+  }
+}, [routineId, logDate]);
 
   const fetchRoutine = async () => {
     try {
@@ -44,20 +40,54 @@ export const LogRoutine = ({ routineId, onClose, onUpdate }) => {
     }
   };
 
-  const updateRoutine = async () => {
+  const fetchRoutineLogForDay = async () => {
+  try {
+    const token = localStorage.getItem("token");
+
+    const formattedDate =
+      logDate instanceof Date
+        ? logDate.toISOString().split("T")[0]
+        : logDate;
+
+    const response = await fetch(
+      `http://localhost:8080/customer/routines/logs?date=${formattedDate}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    if (!response.ok) throw new Error("Failed to fetch routine logs");
+
+    const data = await response.json();
+
+    const log = data.find((l) => l.routineId === routineId);
+
+    if (log) {
+      setLoggedValue(log.value);
+      setNewProgress(log.value);
+    } else {
+      setLoggedValue(0);
+      setNewProgress(0);
+    }
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+  const logRoutine = async () => {
     try {
       const token = localStorage.getItem("token");
 
       const response = await fetch(
-        `http://localhost:8080/customer/routines/${routineId}`,
+        `http://localhost:8080/customer/routines/log`,
         {
-          method: "PUT",
+          method: "POST",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
             value: Number(newProgress),
+            routineId: routineId,
+            logDate: logDate
           }),
         }
       );
@@ -84,7 +114,7 @@ export const LogRoutine = ({ routineId, onClose, onUpdate }) => {
       <RoutineCard
         title={routine.name}
         Icon={IconsData[routine.icon] || IconsData.QuestionMarkIcon}
-        userProgres={routine.value || 0}
+        userProgres={loggedValue}
         scope={routine.scope}
         unit={routine.units}
         value={(newProgress / routine.scope) * 100}
@@ -102,7 +132,7 @@ export const LogRoutine = ({ routineId, onClose, onUpdate }) => {
         text="Save"
         bgColor="#209d3dff"
         color="white"
-        onClick={updateRoutine}
+        onClick={logRoutine}
       />
     </div>
   );
