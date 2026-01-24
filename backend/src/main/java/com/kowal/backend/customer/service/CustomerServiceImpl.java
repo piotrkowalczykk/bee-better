@@ -18,10 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -39,12 +36,13 @@ public class CustomerServiceImpl implements CustomerService {
     private final DayExerciseMapper dayExerciseMapper;
     private final WorkoutLogRepository workoutLogRepository;
     private final RoutineLogRepository routineLogRepository;
+    private final ExerciseLogRepository exerciseLogRepository;
 
     @Autowired
     public CustomerServiceImpl(AuthUserRepository authUserRepository, RoutineRepository routineRepository, RoutineMapper routineMapper,
                                DayRepository dayRepository, DayMapper dayMapper, ExerciseRepository exerciseRepository, ExerciseMapper exerciseMapper,
                                 FileStorageService fileStorageService, DayExerciseRepository dayExerciseRepository, DayExerciseMapper dayExerciseMapper,
-                                WorkoutLogRepository workoutLogRepository,  RoutineLogRepository routineLogRepository) {
+                                WorkoutLogRepository workoutLogRepository,  RoutineLogRepository routineLogRepository, ExerciseLogRepository exerciseLogRepository) {
         this.authUserRepository = authUserRepository;
         this.routineRepository = routineRepository;
         this.routineMapper = routineMapper;
@@ -57,6 +55,7 @@ public class CustomerServiceImpl implements CustomerService {
         this.dayExerciseMapper = dayExerciseMapper;
         this.workoutLogRepository = workoutLogRepository;
         this.routineLogRepository = routineLogRepository;
+        this.exerciseLogRepository = exerciseLogRepository;
     }
 
     @Override
@@ -368,6 +367,54 @@ public class CustomerServiceImpl implements CustomerService {
     public List<RoutineLogResponse> getRoutineLogsForDay(String username, LocalDate date) {
         AuthUser user = findAuthUserByEmail(username);
         return routineLogRepository.findLogsForDay(user.getId(), date);
+    }
+
+    @Override
+    public List<Exercise1RmResponse> getExercise1Rm(Long exerciseId, String userEmail, LocalDate from, LocalDate to) {
+        AuthUser user = findAuthUserByEmail(userEmail);
+        List<ExerciseLog> logs = exerciseLogRepository.findByExerciseIdAndWorkoutAuthUserId(exerciseId, user.getId());
+
+        List<Exercise1RmResponse> result = logs.stream()
+                .filter(log -> {
+                    if (from != null && log.getWorkout().getWorkoutDate().isBefore(from)) return false;
+                    if (to != null && log.getWorkout().getWorkoutDate().isAfter(to)) return false;
+                    return true;
+                })
+                .map(log -> {
+                    double max1Rm = log.getSets().stream()
+                            .mapToDouble(s -> calculate1Rm(s.getWeight(), s.getReps()))
+                            .max()
+                            .orElse(0);
+                    return new Exercise1RmResponse(
+                            log.getWorkout().getWorkoutDate(),
+                            max1Rm
+                    );
+                })
+                .sorted(Comparator.comparing(Exercise1RmResponse::getDate))
+                .toList();
+
+        return result;
+    }
+
+    @Override
+    public List<Exercise> getAllLoggedExercises(String userEmail) {
+        AuthUser user = findAuthUserByEmail(userEmail);
+
+        List<WorkoutLog> workouts = workoutLogRepository.findByAuthUserId(user.getId());
+
+        Map<Long, Exercise> exerciseMap = new HashMap<>();
+        for (WorkoutLog workout : workouts) {
+            for (ExerciseLog exLog : workout.getExerciseLogs()) {
+                Exercise ex = exLog.getExercise();
+                exerciseMap.putIfAbsent(ex.getId(), ex);
+            }
+        }
+
+        return new ArrayList<>(exerciseMap.values());
+    }
+
+    private double calculate1Rm(double weight, int reps) {
+        return weight * (1 + reps / 30.0);
     }
 
     private WorkoutLog createWorkout(AuthUser user, LogWorkoutRequest logWorkoutRequest) {

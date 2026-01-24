@@ -3,6 +3,7 @@ package com.kowal.backend.customer.controller;
 import com.kowal.backend.customer.dto.request.*;
 import com.kowal.backend.customer.dto.response.*;
 import com.kowal.backend.customer.model.Equipment;
+import com.kowal.backend.customer.model.Exercise;
 import com.kowal.backend.customer.model.WorkoutLog;
 import com.kowal.backend.customer.service.CustomerService;
 import jakarta.validation.Valid;
@@ -240,10 +241,26 @@ public class CustomerController {
 
     @PutMapping("/workouts/{id}")
     public ResponseEntity<WorkoutLog> deleteWorkoutLog(@AuthenticationPrincipal UserDetails userDetails, @PathVariable Long workoutLogId){
-        String userEmail = userDetails.getUsername();
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/workouts/logs/{exerciseId}/1rm")
+    public ResponseEntity<List<Exercise1RmResponse>> getExercise1Rm(
+            @PathVariable Long exerciseId,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+            @AuthenticationPrincipal UserDetails userDetails) {
 
+        String userEmail = userDetails.getUsername();
+        List<Exercise1RmResponse> response = customerService.getExercise1Rm(exerciseId, userEmail, from, to);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/workouts/logs/exercises")
+    public ResponseEntity<List<Exercise>> getAllLoggedExercises(@AuthenticationPrincipal UserDetails userDetails) {
+        String userEmail = userDetails.getUsername();
+        List<Exercise> exercises = customerService.getAllLoggedExercises(userEmail);
+        return ResponseEntity.ok(exercises);
+    }
 
 }

@@ -3,6 +3,7 @@ package com.kowal.backend.customer.service;
 import com.kowal.backend.customer.dto.request.*;
 import com.kowal.backend.customer.dto.response.*;
 import com.kowal.backend.customer.model.Equipment;
+import com.kowal.backend.customer.model.Exercise;
 import com.kowal.backend.customer.model.WorkoutLog;
 import jakarta.validation.Valid;
 
@@ -43,4 +44,8 @@ public interface CustomerService {
     RoutineLogResponse logRoutine(LogRoutineRequest logRoutineRequest, String userEmail);
 
     List<RoutineLogResponse> getRoutineLogsForDay(String username, LocalDate date);
+
+    List<Exercise1RmResponse> getExercise1Rm(Long exerciseId, String userEmail, LocalDate from, LocalDate to);
+
+    List<Exercise> getAllLoggedExercises(String userEmail);
 }

@@ -7,12 +7,14 @@ import {
   QuestionMarkIcon,
   ArrorLeft,
   ArrorRight,
+  ChartIcon,
 } from "../../../../app/icons/Icons";
 import { IconsData } from "../../../../app/icons/IconsData";
 import { LogExercise } from "../../components/sections/LogExercise/LogExercise";
 import { LogRoutine } from "../../components/sections/LogRoutine/LogRoutine";
 import { ModalWindow } from "../../../../components/layout/ModalWindow/ModalWindow";
 import { Exercise } from "../../components/ui/Exercise/Exercise";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 export const Dashboard = () => {
   const [loadingRoutines, setLoadingRoutines] = useState(true);
@@ -25,10 +27,16 @@ export const Dashboard = () => {
   const [userDays, setUserDays] = useState([]);
   const [currentDate, setCurrentDate] = useState(() => new Date());
   const [routineLogs, setRoutineLogs] = useState([]);
+  const [loggedExercises, setLoggedExercises] = useState([]);
+
+  const [chartData, setChartData] = useState([]);
+  const [selectedChartExercise, setSelectedChartExercise] = useState(null);
+  const [dateRange, setDateRange] = useState(30);
 
   useEffect(() => {
     fetchUserRoutines();
     fetchUserDays();
+    fetchLoggedExercises();
   }, []);
 
   useEffect(() => {
@@ -53,6 +61,38 @@ export const Dashboard = () => {
       newDate.setDate(prev.getDate() + direction);
       return newDate;
     });
+  };
+
+  useEffect(() => {
+    if (selectedChartExercise) {
+      fetchChartData(selectedChartExercise.id, dateRange);
+    }
+  }, [dateRange, selectedChartExercise]);
+
+  const handleExerciseClickForChart = (exercise) => {
+    setSelectedChartExercise(exercise);
+    fetchChartData(exercise.id, dateRange);
+  };
+
+  const fetchChartData = async (exerciseId, days) => {
+    const token = localStorage.getItem("token");
+    const to = new Date().toISOString().split('T')[0];
+    const fromDate = new Date();
+    fromDate.setDate(fromDate.getDate() - days);
+    const from = fromDate.toISOString().split('T')[0];
+
+    try {
+      const response = await fetch(
+        `http://localhost:8080/customer/workouts/logs/${exerciseId}/1rm?from=${from}&to=${to}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (response.ok) {
+        const data = await response.json();
+        setChartData(data);
+      }
+    } catch (error) {
+      console.error("Error fetching chart data:", error);
+    }
   };
 
   const fetchUserRoutines = async () => {
@@ -94,7 +134,7 @@ export const Dashboard = () => {
   };
 
   const logsMap = Object.fromEntries(
-    routineLogs.map((log) => [log.routineId, log.value])
+    routineLogs.map((log) => [log.routineId, log.value]),
   );
 
   const fetchUserDays = async () => {
@@ -110,6 +150,23 @@ export const Dashboard = () => {
       console.error(error);
     } finally {
       setLoadingExercises(false);
+    }
+  };
+
+  const fetchLoggedExercises = async () => {
+    const token = localStorage.getItem("token");
+    try {
+      const response = await fetch(
+        `http://localhost:8080/customer/workouts/logs/exercises`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+      if (!response.ok) throw new Error("Failed to fetch logged exercises");
+      const data = await response.json();
+      setLoggedExercises(data);
+    } catch (error) {
+      console.error(error);
     }
   };
 
@@ -153,7 +210,7 @@ export const Dashboard = () => {
               {loadingRoutines ? (
                 <p>Loading routines...</p>
               ) : routinesForDay.length === 0 ? (
-                <p>No routines for this day</p>
+                <p style={{color: '#666'}} >No routines for this day</p>
               ) : (
                 routinesForDay.map((routine) => {
                   const loggedValue = logsMap[routine.id] || 0;
@@ -180,7 +237,50 @@ export const Dashboard = () => {
             </div>
           </div>
           <div className={classes.overviewContainer}>
-            <h2 className={classes.containerTitle}>Overview</h2>
+            <h2 className={classes.containerTitle}>Overview {selectedChartExercise ? `- ${selectedChartExercise.name}` : ""}</h2>
+            {selectedChartExercise ? (
+              <>
+                
+                <div style={{ width: '100%', height: 221, marginTop: '20px' }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={chartData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#444" />
+                      <XAxis dataKey="date" stroke="#888" fontSize={12} />
+                      <YAxis stroke="#888" fontSize={12} unit="kg" />
+                      <Tooltip 
+                        contentStyle={{ backgroundColor: '#222', border: 'none', borderRadius: '8px' }}
+                        itemStyle={{ color: '#fff' }}
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="oneRm" 
+                        stroke="#82ca9d" 
+                        strokeWidth={2}
+                        dot={{ r: 4 }}
+                        activeDot={{ r: 8 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className={classes.chartControls}>
+                  {[7, 30, 90].map(days => (
+                    <button 
+                      key={days}
+                      className={dateRange === days ? classes.activeRange : ""}
+                      onClick={() => setDateRange(days)}
+                    >
+                      {days === 7 ? "1W" : days === 30 ? "1M" : "3M"}
+                    </button>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <p style={{color: '#666', textAlign: 'center', marginTop: '40px'}}>
+                <ChartIcon />
+                <br/>
+                Select an exercise from "Your exercises" to see progress chart
+              </p>
+            )}
           </div>
         </div>
         <div className={classes.dashboardRightContainer}>
@@ -218,7 +318,26 @@ export const Dashboard = () => {
               )}
             </div>
           </div>
-          <div className={classes.manageContainer}>siema</div>
+          <div className={classes.manageContainer}>
+            <h2 className={classes.containerTitle}>Your exercises</h2>
+            <div className={classes.manageInnerContainer}>
+              {loadingExercises ? (
+                <p>Loading exercises...</p>
+              ) : loggedExercises.length === 0 ? (
+                <p style={{color:` #666`}}>No logged exercises</p>
+              ) : (
+                loggedExercises.map((exercise) => (
+                  <Exercise
+                    key={exercise.id}
+                    image={exercise.image}
+                    name={exercise.name}
+                    muscleGroup={exercise.muscleGroup}
+                    onClick={() => handleExerciseClickForChart(exercise)}
+                  />
+                ))
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </Layout>

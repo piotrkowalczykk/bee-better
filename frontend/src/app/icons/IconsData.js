@@ -21,6 +21,7 @@ import {
   SearchIcon,
   CalendarIcon,
   CloseIcon,
+  ChartIcon,
 } from "./Icons";
 
 export const IconsData = {
@@ -46,4 +47,5 @@ export const IconsData = {
   SearchIcon,
   CalendarIcon,
   CloseIcon,
+  ChartIcon
 };

@@ -1,0 +1,77 @@
+.articleCardContainer{
+    background-color: var(--first-color);
+    border-radius: 10px;
+    display: flex;
+    flex-direction: row;
+    height: 250px;
+    overflow: hidden;
+    -webkit-box-shadow: 6px 6px 0px 1px rgba(58, 54, 54, 1);
+    -moz-box-shadow: 6px 6px 0px 1px rgba(58, 54, 54, 1);
+    box-shadow: 6px 6px 0px 1px rgba(58, 54, 54, 1);
+}
+
+.articleImageContainer{
+    display: flex;
+    justify-content: center;
+    flex: 1;
+}
+
+.articleImageContainer > img {
+    object-fit: cover;
+    width: 100%;
+}
+
+.articlContent{
+    display: flex;
+    flex-direction: column;
+    flex: 3;
+    padding: 1em;
+}
+
+.articleTitle{
+    color: yellow;
+    margin-bottom: 0.5em;
+}
+
+.articleTitle::before{
+    content: "";
+    display: inline-block;
+    height: 10px;
+    width: 10px;
+    margin-right: 0.5em;
+    background-color: black;
+}
+
+.articleDesc{
+    color: white;
+    font-weight: 100;
+    margin-bottom: 0.5em;
+}
+
+.articleContentFooter{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.articleContentFooter > button{
+    background-color: yellow;
+    border-radius: 10px;
+    padding: 0.5em 1em;
+    width: 120px;
+    cursor: pointer;
+    -webkit-box-shadow: 4px 4px 0px 1px rgb(27, 26, 26);
+    -moz-box-shadow: 4px 4px 0px 1px rgb(27, 26, 26);
+    box-shadow: 4px 4px 0px 1px rgb(27, 26, 26);
+    transition: 0.2s all ease;
+}
+
+.articleContentFooter > button:hover{
+    opacity: 0.5;
+}
+
+.articleDate{
+    color: white;
+}
