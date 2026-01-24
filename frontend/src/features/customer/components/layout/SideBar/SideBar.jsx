@@ -6,9 +6,11 @@ import { Link, NavLink  } from "react-router-dom";
 
 export const SideBar = () => {
 
-    const { logout } = useAuth();
+    const { logout, user } = useAuth();
     const [isMobile, setIsMobile] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
+
+    const isAdmin = user?.roles.includes("ADMIN");
 
     useEffect(() => {
         const checkMobile = () => {
@@ -76,11 +78,11 @@ export const SideBar = () => {
                         <RoutinesIcon className={classes.sidebarItemIcon} />                       
                         <span className={classes.sidebarItemText}>Routines</span>
                     </NavLink>
-                    <NavLink className={({ isActive }) =>
-                        isActive ? `${classes.sidebarItem} ${classes.active}` : classes.sidebarItem} to="/settings">
+                    {isAdmin && (<NavLink className={({ isActive }) =>
+                        isActive ? `${classes.sidebarItem} ${classes.active}` : classes.sidebarItem} to="/manage-articles">
                         <SettingsIcon className={classes.sidebarItemIcon} />                       
-                        <span className={classes.sidebarItemText}>Settings</span>
-                    </NavLink>
+                        <span className={classes.sidebarItemText}>Manage Articles</span>
+                    </NavLink>)}
                 </div>
                 <div className={classes.sidebarFooter}>
                     <Link className={classes.sidebarItem} onClick={logout} to="/" >

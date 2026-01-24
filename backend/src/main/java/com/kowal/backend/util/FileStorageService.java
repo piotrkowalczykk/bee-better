@@ -19,20 +19,32 @@ public class FileStorageService {
 
     private static final Set<String> ALLOWED_IMAGE_EXTENSIONS = Set.of("jpg", "jpeg", "png", "webp");
 
-    @Value("${exercise.images.dir}")
-    private String storageDir;
-
     @Value("${exercise.images.base-url}")
     private String baseUrl;
 
+    @Value("${exercise.images.dir}")
+    private String exercisesDir;
 
-    public String storeExerciseImage(MultipartFile file) {
+    @Value("${article.images.dir}")
+    private String articlesDir;
+
+    public String storeFile(MultipartFile file, String folder) {
         validateFile(file);
 
         String extension = getFileExtension(file.getOriginalFilename());
         String uniqueName = UUID.randomUUID() + "." + extension;
 
-        Path targetDir = Paths.get(storageDir);
+        Path targetDir;
+        switch (folder.toLowerCase()) {
+            case "articles":
+                targetDir = Paths.get(articlesDir);
+                break;
+            case "exercises":
+            default:
+                targetDir = Paths.get(exercisesDir);
+                break;
+        }
+
         try {
             if (!Files.exists(targetDir)) {
                 Files.createDirectories(targetDir);
@@ -41,7 +53,7 @@ public class FileStorageService {
             Path targetPath = targetDir.resolve(uniqueName).normalize();
             Files.copy(file.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
 
-            return baseUrl + uniqueName;
+            return baseUrl + folder + "/" + uniqueName;
 
         } catch (IOException e) {
             throw new RuntimeException("Could not store file: " + file.getOriginalFilename(), e);
@@ -49,9 +61,7 @@ public class FileStorageService {
     }
 
     private void validateFile(MultipartFile file) {
-        if (file.isEmpty()) {
-            throw new IllegalArgumentException("Cannot store empty file");
-        }
+        if (file.isEmpty()) throw new IllegalArgumentException("Cannot store empty file");
 
         String originalFilename = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename()));
         if (originalFilename.contains("..")) {
@@ -67,9 +77,7 @@ public class FileStorageService {
 
     private String getFileExtension(String filename) {
         String ext = StringUtils.getFilenameExtension(filename);
-        if (ext == null) {
-            throw new IllegalArgumentException("File must have an extension");
-        }
+        if (ext == null) throw new IllegalArgumentException("File must have an extension");
         return ext.toLowerCase();
     }
 
@@ -78,7 +86,7 @@ public class FileStorageService {
 
         try {
             String filename = Paths.get(fileUrl).getFileName().toString();
-            Path filePath = Paths.get(storageDir).resolve(filename).normalize();
+            Path filePath = Paths.get(exercisesDir).resolve(filename).normalize();
             Files.deleteIfExists(filePath);
         } catch (IOException e) {
             e.printStackTrace();

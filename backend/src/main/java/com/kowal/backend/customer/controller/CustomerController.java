@@ -1,5 +1,8 @@
 package com.kowal.backend.customer.controller;
 
+import com.kowal.backend.acrticle.dto.response.ArticleDetailsResponse;
+import com.kowal.backend.acrticle.dto.response.ArticlesResponse;
+import com.kowal.backend.acrticle.service.ArticleService;
 import com.kowal.backend.customer.dto.request.*;
 import com.kowal.backend.customer.dto.response.*;
 import com.kowal.backend.customer.model.Equipment;
@@ -23,10 +26,26 @@ import java.util.List;
 public class CustomerController {
 
     private final CustomerService customerService;
+    private final ArticleService articleService;
 
     @Autowired
-    public CustomerController(CustomerService customerService){
+    public CustomerController(CustomerService customerService, ArticleService articleService) {
+        this.articleService = articleService;
         this.customerService = customerService;
+    }
+
+    @GetMapping("/articles")
+    public ResponseEntity<List<ArticlesResponse>> getAllArticles(@AuthenticationPrincipal  UserDetails userDetails){
+        String userEmail = userDetails.getUsername();
+        List<ArticlesResponse> articles = articleService.getAllArticles(userEmail);
+        return ResponseEntity.ok(articles);
+    }
+
+    @GetMapping("/articles/{articleId}")
+    public ResponseEntity<ArticleDetailsResponse> getArticleById(@PathVariable Long articleId, @AuthenticationPrincipal  UserDetails userDetails){
+        String userEmail = userDetails.getUsername();
+        ArticleDetailsResponse article = articleService.getArticleById(userEmail, articleId);
+        return ResponseEntity.ok(article);
     }
 
     @PostMapping("/add-routine")

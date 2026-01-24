@@ -10,7 +10,7 @@ export const RoleBasedRoute = ({children, role}) => {
 
     if(!user)
         return <Navigate to="/" />
-    
+
     if (!user.roles.includes(role)) {
         return <Navigate to="/unauthorized" />;
     }

@@ -8,6 +8,7 @@ export const CustomInput = ({
   onChange,
   placeholder,
   options = [],
+  rows = 4,
 }) => {
   return (
     <div className={classes.formInputContainer}>
@@ -28,6 +29,18 @@ export const CustomInput = ({
             </option>
           ))}
         </select>
+
+      ) : type === "textarea" ? (
+        <textarea
+          id={name}
+          name={name}
+          value={value}
+          onChange={onChange}
+          placeholder={placeholder}
+          rows={rows}
+          className={classes.formInput}
+        />
+
       ) : (
         <input
           type={type}

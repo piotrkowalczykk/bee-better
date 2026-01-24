@@ -1,0 +1,122 @@
+.adminContainer{
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+    gap: 1em;
+    border: 1px solid black;
+}
+
+.adminLeftContainer, .adminRightContainer{
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 0;
+    min-height: 0;
+    border-radius: 10px;
+    background-color: var(--first-color);
+    -webkit-box-shadow: 6px 6px 0px 1px rgba(58, 54, 54, 1);
+    -moz-box-shadow: 6px 6px 0px 1px rgba(58, 54, 54, 1);
+    box-shadow: 6px 6px 0px 1px rgba(58, 54, 54, 1);
+    padding: 1.5em;
+}
+
+.innerAdminRightContainer{
+    overflow-y: scroll;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.containerTitle{
+    font-size: 1rem;
+    font-weight: 500;
+    line-height: 1;
+    color: white;
+    padding-bottom: 1.5em;
+}
+
+.innerAdminLeftContainer{
+    display: flex;
+    flex-direction: row;
+    gap: 1em;
+    align-items: stretch;
+    flex: 1;
+}
+
+.titleAndImageContainer,
+.descriptionContainer,
+.contentContainer {
+    display: flex;
+    flex-direction: column;
+    flex: 4;
+}
+
+.descriptionContainer textarea,
+.contentContainer textarea {
+    flex: 1;
+    resize: none;
+}
+
+.titleAndImageContainer{
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+    align-items: center;
+}
+
+.innerAdminRightContainer{
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+    align-items: center;
+}
+
+.manageBtns{
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    justify-content: space-evenly;
+    align-items: center;
+}
+
+.articleTable{
+    width: 100%;
+    font-size: 1rem;
+    border: 1px solid transparent;
+    color: white;
+    font-weight: 100;
+    text-align: center;
+}
+
+.articleTable > thead > tr > th {
+    background-color: yellow;
+    color: black;
+}
+
+.articleTable tbody tr:nth-child(odd) {
+  background-color: var(--second-color);
+}
+
+.articleTable tbody tr:nth-child(even) {
+  background-color: var(--first-color);
+}
+
+.articleBtn {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    border-radius: 100%;
+    transition: 0.2s all ease-in-out;
+}
+
+.articleBtn:hover{
+    opacity: 0.5;
+}
+
+td{
+    padding: 0.25em;
+}
+
+
+

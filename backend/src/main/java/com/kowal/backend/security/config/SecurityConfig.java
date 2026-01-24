@@ -43,6 +43,9 @@ public class SecurityConfig {
         http.authorizeHttpRequests(request -> request
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/images/**").permitAll()
+                        .requestMatchers("/uploads/**").permitAll()
+                        .requestMatchers("/admin/**").hasAuthority("ADMIN")
+                        .requestMatchers("/customer/**").hasAnyAuthority("USER", "ADMIN")
                         .anyRequest().authenticated());
         http.httpBasic(Customizer.withDefaults());
         http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
@@ -81,6 +84,9 @@ public class SecurityConfig {
             public void addResourceHandlers(org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry registry) {
                 registry.addResourceHandler(baseUrl + "**")
                         .addResourceLocations("file:" + storageDir + "/");
+
+                registry.addResourceHandler("/images/articles/**")
+                        .addResourceLocations("file:" + "uploads/articles/");
             }
         };
     }

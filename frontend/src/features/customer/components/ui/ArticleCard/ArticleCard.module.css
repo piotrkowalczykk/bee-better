@@ -3,12 +3,40 @@
     border-radius: 10px;
     display: flex;
     flex-direction: row;
-    height: 250px;
     overflow: hidden;
     -webkit-box-shadow: 6px 6px 0px 1px rgba(58, 54, 54, 1);
     -moz-box-shadow: 6px 6px 0px 1px rgba(58, 54, 54, 1);
     box-shadow: 6px 6px 0px 1px rgba(58, 54, 54, 1);
 }
+
+@media (max-width: 768px) {
+    .articleCardContainer {
+        flex-direction: column;
+        height: auto;
+    }
+}
+
+@media (max-width: 768px) {
+    .articleImageContainer {
+        order: 1;
+    }
+
+    .articlContent {
+        order: 2;
+    }
+}
+
+@media (max-width: 768px) {
+    .articleImageContainer {
+        width: 100%;
+        height: 180px;
+    }
+
+    .articleImageContainer img {
+        height: 100%;
+    }
+}
+
 
 .articleImageContainer{
     display: flex;
@@ -45,10 +73,10 @@
 .articleDesc{
     color: white;
     font-weight: 100;
-    margin-bottom: 0.5em;
 }
 
 .articleContentFooter{
+    margin-top: auto;
     display: flex;
     flex-direction: row;
     justify-content: space-between;
@@ -56,7 +84,11 @@
     margin-bottom: 0.5rem;
 }
 
-.articleContentFooter > button{
+.articleContentFooter > .articleBtn{
+    text-decoration: none;
+    color: black;
+    font-size: 0.8rem;
+    text-align: center;
     background-color: yellow;
     border-radius: 10px;
     padding: 0.5em 1em;
@@ -68,7 +100,7 @@
     transition: 0.2s all ease;
 }
 
-.articleContentFooter > button:hover{
+.articleContentFooter > .articleBtn:hover{
     opacity: 0.5;
 }
 

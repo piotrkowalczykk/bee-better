@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faImage } from "@fortawesome/free-solid-svg-icons";
 import classes from "./ImageUploader.module.css";
 
-export const ImageUploader = ({ image, onFileSelect }) => {
+export const ImageUploader = ({ image, onFileSelect, preview }) => {
   const [imagePreviewUrl, setImagePreviewUrl] = useState(null);
   const inputRef = useRef(null);
 
@@ -20,15 +20,17 @@ export const ImageUploader = ({ image, onFileSelect }) => {
   };
 
   useEffect(() => {
-    if (!image) {
-      setImagePreviewUrl(null);
-
-      if (inputRef.current) {
-        inputRef.current.value = "";
-      }
-    }
-  }, [image]);
-
+  if (image) {
+    const reader = new FileReader();
+    reader.onloadend = () => setImagePreviewUrl(reader.result);
+    reader.readAsDataURL(image);
+  } else if (preview) {
+    setImagePreviewUrl(preview);
+  } else {
+    setImagePreviewUrl(null);
+    if (inputRef.current) inputRef.current.value = "";
+  }
+}, [image, preview]);
   return (
     <div className={classes.imageUploaderContainer}>
       <input

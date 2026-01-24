@@ -210,7 +210,7 @@ public class CustomerServiceImpl implements CustomerService {
         exercise.setEquipment(request.getEquipment());
 
         if (request.getImage() != null && !request.getImage().isEmpty()) {
-            String imageUrl = fileStorageService.storeExerciseImage(request.getImage());
+            String imageUrl = fileStorageService.storeFile(request.getImage(), "exercises");
             exercise.setImage(imageUrl);
         }
 
@@ -246,7 +246,7 @@ public class CustomerServiceImpl implements CustomerService {
 
         if (request.getImage() != null && !request.getImage().isEmpty()) {
             fileStorageService.deleteFile(exercise.getImage());
-            String imageUrl = fileStorageService.storeExerciseImage(request.getImage());
+            String imageUrl = fileStorageService.storeFile(request.getImage(), "exercises");
             exercise.setImage(imageUrl);
         }
 

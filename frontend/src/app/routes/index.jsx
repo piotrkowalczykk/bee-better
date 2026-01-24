@@ -9,10 +9,11 @@ import { VerifyEmail } from "../../features/auth/pages/VerifyEmail";
 import { ResetPassword } from "../../features/auth/pages/ResetPassword";
 import { PublicRoute } from "./PublicRoute";
 import { Routines } from "../../features/customer/pages/Routines/Routines";
-import { Settings } from "../../features/customer/pages/Settings/Settings";
 import { Exercises } from "../../features/customer/pages/Exercises/Exercises";
 import { Feed } from "../../features/customer/pages/Feed/Feed";
 import { DayCreator } from "../../features/customer/pages/DayCreator/DayCreator";
+import { ArticleDetails } from "../../features/customer/pages/ArticleDetails/ArticleDetails";
+import { Admin } from "../../features/customer/pages/Admin/Admin";
 
 export default function AppRoutes() {
   return (
@@ -27,10 +28,11 @@ export default function AppRoutes() {
       
         <Route path="/dashboard" element={<RoleBasedRoute role="USER"><Dashboard /></RoleBasedRoute>} />
         <Route path="/routines" element={<RoleBasedRoute role="USER"><Routines /></RoleBasedRoute>} />
-        <Route path="/settings" element={<RoleBasedRoute role="USER"><Settings /></RoleBasedRoute>} />
         <Route path="/exercises" element={<RoleBasedRoute role="USER"><Exercises /></RoleBasedRoute>} />
         <Route path="/feed" element={<RoleBasedRoute role="USER"><Feed /></RoleBasedRoute>} />
         <Route path="/day-creator" element={<RoleBasedRoute role="USER"><DayCreator /></RoleBasedRoute>} />
+        <Route path="/articles/:articleId" element={<RoleBasedRoute role="USER"><ArticleDetails /></RoleBasedRoute>} />
+        <Route path="/manage-articles" element={<RoleBasedRoute role="ADMIN"><Admin /></RoleBasedRoute>} />
       </Routes>
     </Router>
   )
