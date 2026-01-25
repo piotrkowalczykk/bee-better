@@ -15,12 +15,16 @@ export const Feed = () => {
     const token = localStorage.getItem("token");
     try {
       const response = await fetch(
-        "http://127.0.0.1:8080/admin/articles",
+        "http://127.0.0.1:8080/customer/articles",
         { headers: { Authorization: `Bearer ${token}` } }
       );
       if (!response.ok) throw new Error("Failed to fetch articles");
       const data = await response.json();
-      setArticles(data);
+
+      const sortedArticles = data.sort((a, b) => {
+      return new Date(b.createdAt) - new Date(a.createdAt);
+    });
+      setArticles(sortedArticles);
     } catch (error) {
       console.error("Error fetching articles:", error);
     } finally {

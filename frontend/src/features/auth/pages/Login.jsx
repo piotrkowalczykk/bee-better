@@ -34,6 +34,8 @@ export const Login = () => {
                 if (response.status === 403 && errorData.message === "Email is not verified. Please check your inbox.") {
                     sessionStorage.setItem("email", credentials.email);
                     navigate("/verify-email");
+                } else if (response.status === 401){
+                    alert(errorData.message);
                 } else {
                     setError(errorData.message);
                     const messages = Object.values(errorData.errors).join("\n");

@@ -59,8 +59,7 @@ public class SecurityConfig {
 
     @Bean
     PasswordEncoder passwordEncoder(){
-        // return new BCryptPasswordEncoder();
-        return NoOpPasswordEncoder.getInstance();
+        return new BCryptPasswordEncoder();
     }
 
     @Bean
@@ -69,7 +68,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public WebMvcConfigurer webMvcConfigurer(@Value("${exercise.images.dir}") String storageDir, @Value("${exercise.images.base-url}") String baseUrl){
+    public WebMvcConfigurer webMvcConfigurer(){
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
@@ -82,8 +81,8 @@ public class SecurityConfig {
 
             @Override
             public void addResourceHandlers(org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry registry) {
-                registry.addResourceHandler(baseUrl + "**")
-                        .addResourceLocations("file:" + storageDir + "/");
+                registry.addResourceHandler("/images/exercises/**")
+                        .addResourceLocations("file:" + "uploads/exercises/");
 
                 registry.addResourceHandler("/images/articles/**")
                         .addResourceLocations("file:" + "uploads/articles/");

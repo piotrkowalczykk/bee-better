@@ -238,7 +238,8 @@ export const Dashboard = () => {
           </div>
           <div className={classes.overviewContainer}>
             <h2 className={classes.containerTitle}>Overview {selectedChartExercise ? `- ${selectedChartExercise.name}` : ""}</h2>
-            {selectedChartExercise ? (
+            <div className={classes.innerOverviewContainer}>
+                {selectedChartExercise ? (
               <>
                 
                 <div style={{ width: '100%', height: 221, marginTop: '20px' }}>
@@ -281,6 +282,7 @@ export const Dashboard = () => {
                 Select an exercise from "Your exercises" to see progress chart
               </p>
             )}
+            </div>
           </div>
         </div>
         <div className={classes.dashboardRightContainer}>
