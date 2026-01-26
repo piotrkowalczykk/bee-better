@@ -54,6 +54,7 @@ public class JWTService {
             Jwts.parserBuilder().setSigningKey(getSigningKey()).build().parseClaimsJws(token);
             return true;
         } catch (Exception e){
+            logger.error("JWT validation failed: {}", e.getMessage(), e);
             throw new AuthenticationCredentialsNotFoundException("JWT expired or incorrect");
         }
     }

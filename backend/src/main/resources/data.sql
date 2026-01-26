@@ -61,15 +61,15 @@ WHERE u.email = 'peter@test.com'
 
 INSERT INTO exercises (image, muscle_group, name, equipment)
 SELECT '/images/exercises/dumbbell-biceps-curls.webp', 'Biceps', 'Dumbbell biceps curls', 'DUMBBELL'
-WHERE NOT EXISTS (SELECT 1 FROM roles WHERE name = 'Dumbbell biceps curls');
+WHERE NOT EXISTS (SELECT 1 FROM exercises WHERE name = 'Dumbbell biceps curls');
 
 INSERT INTO exercises (image, muscle_group, name, equipment)
 SELECT '/images/exercises/dumbbell-kickback.jpg', 'Triceps', 'Dumbbell kickback', 'DUMBBELL'
-WHERE NOT EXISTS (SELECT 1 FROM roles WHERE name = 'Dumbbell kickback');
+WHERE NOT EXISTS (SELECT 1 FROM exercises WHERE name = 'Dumbbell kickback');
 
 INSERT INTO exercises (image, muscle_group, name, equipment)
 SELECT '/images/exercises/barbell-chest-press.jpg', 'Chest', 'Barbell chest press', 'BARBELL'
-WHERE NOT EXISTS (SELECT 1 FROM roles WHERE name = 'Barbell chest press');
+WHERE NOT EXISTS (SELECT 1 FROM exercises WHERE name = 'Barbell chest press');
 
 INSERT INTO exercises (image, muscle_group, name, equipment)
 SELECT '/images/exercises/barbell-squat.jpg', 'Legs', 'Barbell Squat', 'BARBELL'
